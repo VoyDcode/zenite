@@ -47,7 +47,7 @@ export default function Header() {
       <div className="container-custom flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button onClick={() => router.push('/')} className="flex items-center gap-2 text-2xl font-bold text-white hover:opacity-90 transition-opacity" aria-label="Ir para a página inicial">
-            <Image src="/logo.png" alt="Logo Zenite" width={48} height={48} priority className="w-10 h-10 object-contain" />
+            <Image src="/LOGO.png" alt="Logo Zenite" width={48} height={48} priority className="w-10 h-10 object-contain" />
             Zenite
           </button>
           <NavigationArrows previousPath={prev} nextPath={next} />
