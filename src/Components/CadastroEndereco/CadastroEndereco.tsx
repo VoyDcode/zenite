@@ -2,21 +2,32 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+interface Endereco {
+  nome: string;
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  latitude: string;
+  longitude: string;
+  idUsuario: number;
+}
+
 export default function CadastroEndereco() {
   const router = useRouter();
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-     const [endereco, setEndereco] = useState({
-      nome: "",
-      cep: "",
-      logradouro: "",
-      bairro: "",
-      cidade: "",
-      estado: "",
-      latitude: '',
-      longitude: '',
-      idUsuario: 0
+  const [endereco, setEndereco] = useState<Endereco>({
+    nome: "",
+    cep: "",
+    logradouro: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
+    latitude: '',
+    longitude: '',
+    idUsuario: 0
   });
 
   useEffect(() => {
@@ -31,19 +42,17 @@ export default function CadastroEndereco() {
       ...prev,
       idUsuario: usuario.id
     }));
-  }, []);
+  }, [router]);
     
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setEndereco(prev => ({ ...prev, [name]: value }));
-    setError('');
 
   if (name === 'cep') {
     let novoValor = value;
     novoValor = value.replace(/\D/g, '');
     setEndereco(prev => ({ ...prev, [name]: novoValor }));
-    setError('');
 
   }
   
@@ -54,7 +63,7 @@ export default function CadastroEndereco() {
       const data = await response.json();
 
       if (data.erro) {
-        setError('CEP não encontrado');
+        // setError('CEP não encontrado');
       } else {
         setEndereco(prev => ({
           ...prev,
@@ -65,34 +74,32 @@ export default function CadastroEndereco() {
         }));
       }
     } catch (error) {
-      setError('Erro ao buscar CEP');
+      // setError('Erro ao buscar CEP');
     }
   }
   };
 
   const pegarLatLong = async () => {
-    
-  try {
-    const enderecoCompleto = `${endereco.logradouro}, ${endereco.bairro}, ${endereco.cidade}, ${endereco.estado}`;
+    try {
+      const enderecoCompleto = `${endereco.logradouro}, ${endereco.bairro}, ${endereco.cidade}, ${endereco.estado}`;
 
-    const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(enderecoCompleto)}&key=76f96f8dcfa6497497248424504e63bb`);
-    const data = await response.json();
+      const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(enderecoCompleto)}&key=76f96f8dcfa6497497248424504e63bb`);
+      const data = await response.json();
 
-    if (data && data.results && data.results.length > 0) {
-      const { lat, lng } = data.results[0].geometry;
-      return {
-        ...endereco,
-        latitude: lat,
-        longitude: lng,
-      };
-    }
-    } catch (error) {
-    console.error('Erro ao obter coordenadas:', error);
+      if (data && data.results && data.results.length > 0) {
+        const { lat, lng } = data.results[0].geometry;
+        return {
+          ...endereco,
+          latitude: lat,
+          longitude: lng,
+        };
+      }
+    } catch {
+      console.error('Erro ao obter coordenadas');
     }
   }
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       const enderecoCompleto = await pegarLatLong(); // <- AQUI você espera o resultado
@@ -121,7 +128,7 @@ export default function CadastroEndereco() {
       router.push("/");
     } catch (error) {
       console.error("Erro ao cadastrar:", error);
-      setError('Erro ao cadastrar endereço. Por favor, tente novamente.');
+      // setError('Erro ao cadastrar endereço. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -134,9 +141,6 @@ export default function CadastroEndereco() {
         <p className="text-xs text-black font-semibold mb-6 text-center">
           Cadastre seu endereço usando apenas o cep
         </p>
-        {error && (
-          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-        )}
         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

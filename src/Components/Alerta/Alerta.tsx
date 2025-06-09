@@ -1,16 +1,72 @@
 'use client';
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from "react";
+import Image from 'next/image';
+
+interface Endereco {
+  id: number;
+  nome: string;
+  cidade: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface ClimaData {
+  main: {
+    temp: number;
+    humidity: number;
+    pressure: number;
+  };
+  weather: Array<{
+    description: string;
+    icon: string;
+  }>;
+  wind: {
+    speed: number;
+  };
+  visibility: number;
+  sys: {
+    sunrise: number;
+    sunset: number;
+  };
+}
+
+interface WeatherAPIAlerta {
+  headline?: string;
+  event?: string;
+  desc?: string;
+  msg?: string;
+}
+
+interface Alerta {
+  titulo: string;
+  descricao: string;
+}
+
+interface Cidade {
+  id: number;
+  nome: string;
+  uf: string;
+  temperatura: number;
+  descricao: string;
+  umidade: number;
+  vento: number;
+  pressao: number;
+  visibilidade: number;
+  nascer: string;
+  por: string;
+  icone: string;
+  alertas: Alerta[];
+}
 
 export default function ClimaAlertasPage() {
-  const [cidades, setCidades] = useState<any[]>([]);
+  const [cidades, setCidades] = useState<Cidade[]>([]);
   const router = useRouter();
   const [error, setError] = useState('');
-  useEffect(() => {
 
+  useEffect(() => {
     const usuarioJSON = localStorage.getItem("usuarioLogado");
     
-
     if (!usuarioJSON) {
       router.push("/login");
       return;
@@ -28,24 +84,24 @@ export default function ClimaAlertasPage() {
           setError("Nenhum endereço cadastrado");
           return;
         }
-        const enderecos = JSON.parse(text); 
+        const enderecos: Endereco[] = JSON.parse(text); 
         const cidadesComClima = await Promise.all(
-          enderecos.map(async (endereco: any) => {
+          enderecos.map(async (endereco: Endereco) => {
             const resClima = await fetch(
               `https://api.openweathermap.org/data/2.5/weather?lat=${endereco.latitude}&lon=${endereco.longitude}&appid=12c1487aa8317768af0265b6ca00854e&units=metric&lang=pt_br`
             );
             if (!resClima.ok) throw new Error("Erro ao buscar clima");
-            const climaData = await resClima.json();
+            const climaData: ClimaData = await resClima.json();
 
             const resAlertas = await fetch(
               `http://api.weatherapi.com/v1/alerts.json?key=91148a813cdb48c580605740252805&q=${encodeURIComponent(endereco.cidade)}`
             );
 
-            let alertas = [];
+            let alertas: Alerta[] = [];
             if (resAlertas.ok) {
               const alertasData = await resAlertas.json();
               if (alertasData.alert && alertasData.alert.alert.length > 0) {
-                alertas = alertasData.alert.alert.map((alerta: any) => ({
+                alertas = alertasData.alert.alert.map((alerta: WeatherAPIAlerta) => ({
                   titulo: alerta.headline || alerta.event || "Alerta",
                   descricao: alerta.desc || alerta.msg || "Sem descrição",
                 }));
@@ -82,7 +138,6 @@ export default function ClimaAlertasPage() {
               alertas
             };
           })
-          
         );
 
         setCidades(cidadesComClima);
@@ -92,7 +147,7 @@ export default function ClimaAlertasPage() {
     }
 
     buscarDados();
-  }, []);
+  }, [router]);
 
   async function handleDelete(id: number) {
       try{
@@ -119,9 +174,11 @@ export default function ClimaAlertasPage() {
           {cidades.map((cidade, idx) => (
             <div key={idx} className="bg-white rounded-lg shadow-md p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 mb-2">
-                <img
+                <Image
                   src={`http://openweathermap.org/img/wn/${cidade.icone}@2x.png`}
                   alt="Ícone do clima"
+                  width={40}
+                  height={40}
                   className="w-10 h-10"
                 />
                 <div>
