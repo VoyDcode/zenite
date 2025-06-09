@@ -57,6 +57,9 @@ A aplicação foi construída utilizando **Next.js com App Router** e **TypeScri
 - A navegação é bloqueada caso o usuário tente acessar rotas sem autenticação válida.
 
 ---
+#### Vercel
+###### Obs: Devido a um erro desconhecido a versão do site da vercel não apresenta a estilização funcional 
+https://zenite-phi.vercel.app/
 
 #### Video
 https://drive.google.com/file/d/1r2PCk8MeK2r_-JWV9cYdj3F58_Qei5wz/view?usp=sharing
